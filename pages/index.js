@@ -1,8 +1,88 @@
 import Head from 'next/head'
 import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import styles from '../styles/Home.module.css'
+import { MultiSelect } from '@mantine/core';
+import * as data from '../files/data'
 
+let childs = {}
 export default function Home() {
+  const [categories, setCategories] = useState([])
+  const [subCategories, setSubCategories] = useState([])
+  const [miniCategories, setMiniCategories] = useState([])
+  const [selected, setSelected] = useState([])
+  const [subSelected, setSubSelected] = useState([])
+  const [miniSelected, setMiniSelected] = useState([])
+
+  const addSteelName = (value, steelName) => {
+    let buffer = value
+    buffer.label = buffer.label + `(${steelName})`
+    return buffer
+  }
+  let getChilds = (array, steelname) => {
+    let buffer = [...array].map(value => addSteelName(value, steelname))
+    console.log(buffer)
+    return buffer
+  }
+
+  useEffect(() => {
+    childs = {}
+    console.log(data)
+    let darkMet = data.darkMet
+    let colorMet = data.colorMet
+    let steelItems = data.steelItems
+    childs[data.categories[0].label] = data.darkMet
+    childs[data.categories[1].label] = data.colorMet
+
+    childs[darkMet[0].label] = getChilds(steelItems, darkMet[0].label)
+    childs[darkMet[1].label] = getChilds(data.stainlessSteelItems, darkMet[1].label)
+
+    childs[colorMet[0].label] = getChilds(data.aluminumItems, colorMet[0].label)
+    childs[colorMet[1].label] = getChilds(data.copperItems, colorMet[1].label)
+    childs[colorMet[2].label] = getChilds(data.brassItems, colorMet[2].label)
+    childs[colorMet[3].label] = getChilds(data.bronzeItems, colorMet[3].label)
+    childs[colorMet[4].label] = getChilds(data.titanItems, colorMet[4].label)
+    setCategories(data.categories)
+    console.log(childs)
+    return () => { }
+  }, [])
+  let multiSelectChanged = (value, index) => {
+    if (index == 1) {
+      setSelected(value)
+      let buffer = []
+      console.log(childs)
+      console.log(value)
+      value.forEach((value) => {
+        if (childs[value])
+          buffer.push(...childs[value])
+      })
+      console.log(buffer)
+      setSubCategories(buffer)
+      if (!buffer)
+        setMiniCategories([])
+      buffer = miniSelected.map((selected) => { if (miniCategories.find(data => (data.value === selected))) return selected })
+      setMiniSelected(buffer)
+      buffer = subSelected.map((selected) => { if (subCategories.find(data => (data.value === selected))) return selected })
+      setSubSelected(buffer)
+      return
+    }
+    if (index == 2) {
+      setSubSelected(value)
+      let buffer = []
+      console.log(childs)
+      console.log(value)
+      value.forEach((value) => {
+        if (childs[value])
+          buffer.push(...childs[value])
+      })
+      console.log(buffer)
+      setMiniCategories(buffer)
+      buffer = miniSelected.map((selected) => { if (miniCategories.find(data => (data.value === selected))) return selected })
+      setMiniSelected(buffer)
+      return
+    }
+    setMiniSelected(value)
+  }
   return (
     <div className={styles.container}>
       <Head>
@@ -12,57 +92,28 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+        <MultiSelect
+          data={categories}
+          value={selected}
+          onChange={(value) => multiSelectChanged(value, 1)}
+          label="Выберите категорию"
+        />
+        <MultiSelect
+          data={subCategories}
+          value={subSelected}
+          onChange={(value) => multiSelectChanged(value, 2)}
+          label="Выберите подкатегорию"
+        />
+        <MultiSelect
+          data={miniCategories}
+          onChange={(value) => multiSelectChanged(value, 3)}
+          value={miniSelected}
+          label="Выберите мини Категорию"
+        />
       </main>
 
       <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
+
       </footer>
     </div>
   )
